@@ -20,8 +20,8 @@ func main() {
 			table.WithColumns([]table.Column{
 				{Title: "Day", Width: 6},
 				{Title: "Name", Width: 20},
-				{Title: "Part A", Width: 10},
-				{Title: "Part B", Width: 10},
+				{Title: "Part A", Width: 15},
+				{Title: "Part B", Width: 15},
 				{Title: "Time A", Width: 25},
 				{Title: "Time B", Width: 25},
 			}),

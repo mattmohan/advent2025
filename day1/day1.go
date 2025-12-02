@@ -12,16 +12,8 @@ func GetDay() days.Day {
 		Number: 1,
 		Name:   "Day 1",
 		Parts: [2]days.DayPart{
-			{PartFunc: func(input []byte, result chan string, progress chan float64) {
-				defer close(result)
-				parsed := parseInputDay1(input)
-				result <- strconv.Itoa(solveDay1PartA(parsed, progress))
-			}},
-			{PartFunc: func(input []byte, result chan string, progress chan float64) {
-				defer close(result)
-				parsed := parseInputDay1(input)
-				result <- strconv.Itoa(solveDay1PartB(parsed, progress))
-			}},
+			{PartFunc: day1Part1},
+			{PartFunc: day1Part2},
 		},
 	}
 }
@@ -30,8 +22,49 @@ type Day1Input struct {
 	steps []int
 }
 
-func parseInputDay1(input []byte) Day1Input {
+func day1Part1(inputChars []byte, result chan string, progress chan float64) {
+	// Solve Part A
+	defer close(result)
+	defer close(progress)
+	input := parseInputDay1(inputChars)
 
+	cur := 50
+	count := 0
+
+	for i, step := range input.steps {
+		cur = (cur + step) % 100
+		if cur == 0 {
+			count++
+		}
+
+		progress <- float64(i) / float64(len(input.steps))
+
+	}
+	result <- strconv.Itoa(count)
+}
+
+func day1Part2(inputChars []byte, result chan string, progress chan float64) {
+	defer close(progress)
+	defer close(result)
+	input := parseInputDay1(inputChars)
+	cur := 50
+	count := int(0)
+	for i, step := range input.steps {
+		// Find the next position
+		next := (cur + step) % 100
+		if next < 0 {
+			next += 100
+		}
+
+		count += countZeroCrossings(cur, step)
+		cur = next
+		progress <- float64(i) / float64(len(input.steps))
+	}
+	result <- strconv.Itoa(count)
+
+}
+
+func parseInputDay1(input []byte) Day1Input {
 	if len(input) == 0 {
 		panic("empty input")
 	}
@@ -57,41 +90,6 @@ func parseInputDay1(input []byte) Day1Input {
 	}
 	// Placeholder parsing logic
 	return Day1Input{steps: steps}
-}
-
-func solveDay1PartA(input Day1Input, progress chan float64) int {
-	defer close(progress)
-	cur := 50
-	count := 0
-
-	for i, step := range input.steps {
-		cur = (cur + step) % 100
-		if cur == 0 {
-			count++
-		}
-
-		progress <- float64(i) / float64(len(input.steps))
-
-	}
-	return count
-}
-
-func solveDay1PartB(input Day1Input, progress chan float64) int {
-	defer close(progress)
-	cur := 50
-	count := int(0)
-	for i, step := range input.steps {
-		// Find the next position
-		next := (cur + step) % 100
-		if next < 0 {
-			next += 100
-		}
-
-		count += countZeroCrossings(cur, step)
-		cur = next
-		progress <- float64(i) / float64(len(input.steps))
-	}
-	return count
 }
 
 func countZeroCrossings(start, step int) (count int) {

@@ -1,6 +1,7 @@
 package day1
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -15,14 +16,15 @@ L1
 L99
 R14
 L82`)
-	expectedOutput := 3
+	expectedOutput := "3"
 
-	progress := make(chan float64)
-	input := parseInputDay1(testInput)
-	output := solveDay1PartA(input, progress)
+	progress := make(chan float64, 100)
+	result := make(chan string)
+	go day1Part1(testInput, result, progress)
+	output := <-result
 
-	if output != expectedOutput {
-		t.Errorf("Expected %d, got %d for Solve", expectedOutput, output)
+	if strings.Compare(output, expectedOutput) != 0 {
+		t.Errorf("Expected %s, got %s for Solve", expectedOutput, output)
 	}
 }
 
@@ -37,13 +39,14 @@ L1
 L99
 R14
 L82`)
-	expectedOutput := 6
+	expectedOutput := "6"
 
-	progress := make(chan float64)
-	input := parseInputDay1(testInput)
-	output := solveDay1PartB(input, progress)
+	progress := make(chan float64, 100)
+	result := make(chan string)
+	go day1Part2(testInput, result, progress)
+	output := <-result
 
-	if output != expectedOutput {
-		t.Errorf("Expected %d, got %d for Solve", expectedOutput, output)
+	if strings.Compare(output, expectedOutput) != 0 {
+		t.Errorf("Expected %s, got %s for Solve", expectedOutput, output)
 	}
 }
