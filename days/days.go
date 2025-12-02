@@ -29,18 +29,25 @@ func (day *Day) Run(partIdx PartNumber, taskProg chan Progress) tea.Cmd {
 	start := time.Now()
 	go part.PartFunc(day.Input, result, progress)
 	done := false
-	previousProgress := float32(0.0)
+	nextProgress := float32(0.0)
+	var timer *time.Timer
 	for !done {
 		select {
 		case res := <-result:
 			part.Duration = time.Since(start)
 			part.Result = res
+			if timer != nil {
+				timer.Stop()
+			}
 			taskProg <- Progress{Percent: float32(1.0), Done: true, Day: day.Number - 1, Part: partIdx}
 			done = true
 		case p := <-progress:
-			if float32(p)-previousProgress > 0.01 {
-				previousProgress = float32(p)
-				taskProg <- Progress{Percent: float32(p), Done: false, Day: day.Number - 1, Part: partIdx}
+			nextProgress = float32(p)
+			if timer == nil {
+				timer = time.AfterFunc(10*time.Millisecond, func() {
+					taskProg <- Progress{Percent: nextProgress, Done: false, Day: day.Number - 1, Part: partIdx}
+					timer = nil
+				})
 			}
 		}
 	}
