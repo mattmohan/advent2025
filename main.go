@@ -1,118 +1,54 @@
 package main
 
 import (
-	"flag"
+	"fmt"
 	"os"
-	"strconv"
-	"strings"
+
+	"github.com/charmbracelet/bubbles/progress"
+	"github.com/charmbracelet/bubbles/table"
+	tea "github.com/charmbracelet/bubbletea"
+
+	"git.mattmohan.com/matt/advent2025/days"
 )
 
-type Day1Input struct {
-	steps []int
-}
-
 func main() {
-	test := flag.Bool("test", false, "Run test cases instead of actual input")
-	flag.Parse()
-
-	fileName := "input.txt"
-
-	if *test {
-		fileName = "test_input.txt"
+	dayArray := getDays()
+	uiState := uiModel{days: dayArray,
+		progressCh:   make(chan days.Progress, 500),
+		progressBars: make([][2]progress.Model, len(dayArray)),
+		table: table.New(
+			table.WithColumns([]table.Column{
+				{Title: "Day", Width: 6},
+				{Title: "Name", Width: 20},
+				{Title: "Part A", Width: 10},
+				{Title: "Part B", Width: 10},
+				{Title: "Time A", Width: 25},
+				{Title: "Time B", Width: 25},
+			}),
+			table.WithFocused(true),
+		),
 	}
 
-	contents, err := os.ReadFile(fileName)
-	if err != nil {
-		panic(err)
-	}
-
-	input := parseInputDay1(contents)
-	outputA := solveDay1PartA(input)
-	outputB := solveDay1PartB(input)
-	println("Day 1 Part A:", outputA)
-	println("Day 1 Part B:", outputB)
-}
-
-func parseInputDay1(input []byte) Day1Input {
-	if len(input) == 0 {
-		panic("empty input")
-	}
-	lines := strings.Split(string(input), "\n")
-	steps := make([]int, 0, len(lines))
-
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if trimmed == "" {
-			continue
+	for i := range uiState.progressBars {
+		for j := 0; j < 2; j++ {
+			uiState.progressBars[i][j] = progress.New(progress.WithDefaultGradient(), progress.WithWidth(25))
+			uiState.progressBars[i][j].SetPercent(0)
 		}
-		if trimmed[0] != 'L' && trimmed[0] != 'R' {
-			panic("invalid direction")
-		}
-		tmp, err := strconv.Atoi(trimmed[1:])
+	}
+
+	p := tea.NewProgram(uiState)
+
+	if len(os.Getenv("DEBUG")) > 0 {
+		f, err := tea.LogToFile("debug.log", "debug")
 		if err != nil {
-			panic("invalid step count")
+			fmt.Println("fatal:", err)
+			os.Exit(1)
 		}
-		if trimmed[0] == 'L' {
-			tmp *= -1
-		}
-		steps = append(steps, tmp)
-	}
-	// Placeholder parsing logic
-	return Day1Input{steps: steps}
-}
-
-func solveDay1PartA(input Day1Input) int {
-	cur := 50
-	count := 0
-	for _, step := range input.steps {
-		cur = (cur + step) % 100
-		if cur == 0 {
-			count++
-		}
-	}
-	return count
-}
-
-func solveDay1PartB(input Day1Input) int {
-	cur := 50
-	count := int(0)
-	for _, step := range input.steps {
-		// Find the next position
-		next := (cur + step) % 100
-		if next < 0 {
-			next += 100
-		}
-
-		count += countZeroCrossings(cur, step)
-		cur = next
-	}
-	return count
-}
-
-func countZeroCrossings(start, step int) (count int) {
-	next := (start + step) % 100
-	if next < 0 {
-		next += 100
+		defer f.Close()
 	}
 
-	// Handle the simple case of ending on zero
-	if next == 0 {
-		count++
-	} else if start != 0 {
-		// Handle crossing zero
-		crossingLeft := start < next
-		steppingLeft := step < 0
-
-		if steppingLeft == crossingLeft {
-			count++
-		}
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Alas, there's been an error: %v", err)
+		os.Exit(1)
 	}
-
-	// Handle extra passes
-	if step > 0 {
-		count += step / 100
-	} else {
-		count += step / -100
-	}
-	return count
 }
