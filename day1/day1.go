@@ -10,7 +10,7 @@ import (
 func GetDay() days.Day {
 	return days.Day{
 		Number: 1,
-		Name:   "Day 1",
+		Name:   "Secret Entrance",
 		Parts: [2]days.DayPart{
 			{PartFunc: day1Part1},
 			{PartFunc: day1Part2},
