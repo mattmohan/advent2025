@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"git.mattmohan.com/matt/advent2025/days"
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/table"
 
@@ -16,6 +19,8 @@ type uiModel struct {
 	table        table.Model
 	progressCh   chan days.Progress
 	progressBars [][2]progress.Model
+	help         help.Model
+	keymap       keyMap
 }
 
 type RunDay struct {
@@ -40,16 +45,16 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "q", "ctrl+c":
+		switch {
+		case key.Matches(msg, m.keymap.Help):
+			m.help.ShowAll = !m.help.ShowAll
+			return m, nil
+		case key.Matches(msg, m.keymap.Quit):
 			return m, tea.Quit
-		case "enter":
+		case key.Matches(msg, m.keymap.Execute):
 			currentDay := m.table.Cursor()
 			day := &(m.days)[currentDay]
 			return m, func() tea.Msg { return LoadDay{day: day} }
-		case "u":
-			m.table.SetCursor(1)
-			return m, nil
 		}
 	case LoadDay:
 		filename := fmt.Sprintf("inputs/day%d.txt", msg.day.Number)
@@ -96,8 +101,8 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				day.Name,
 				day.Parts[0].Result,
 				day.Parts[1].Result,
-				day.Parts[0].Duration.String(),
-				day.Parts[1].Duration.String(),
+				day.Parts[0].Duration.Truncate(100 * time.Nanosecond).String(),
+				day.Parts[1].Duration.Truncate(100 * time.Nanosecond).String(),
 			})
 		}
 		m.table.SetRows(rows)

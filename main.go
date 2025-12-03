@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -22,11 +23,13 @@ func main() {
 				{Title: "Name", Width: 20},
 				{Title: "Part A", Width: 15},
 				{Title: "Part B", Width: 15},
-				{Title: "Time A", Width: 25},
-				{Title: "Time B", Width: 25},
+				{Title: "Time A", Width: 15},
+				{Title: "Time B", Width: 15},
 			}),
 			table.WithFocused(true),
 		),
+		help:   help.New(),
+		keymap: keys,
 	}
 
 	for i := range uiState.progressBars {
