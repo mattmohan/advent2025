@@ -26,4 +26,6 @@ go.work.sum
 .env
 
 inputs/
+plugins/
 debug.log
+advent

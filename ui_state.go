@@ -15,7 +15,7 @@ import (
 )
 
 type uiModel struct {
-	days         []days.Day
+	days         []DayPlugin
 	table        table.Model
 	progressCh   chan days.Progress
 	progressBars [][2]progress.Model
@@ -54,7 +54,7 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keymap.Execute):
 			currentDay := m.table.Cursor()
 			day := &(m.days)[currentDay]
-			return m, func() tea.Msg { return LoadDay{day: day} }
+			return m, func() tea.Msg { return LoadDay{day: &day.Day} }
 		}
 	case LoadDay:
 		filename := fmt.Sprintf("inputs/day%d.txt", msg.day.Number)
@@ -97,12 +97,12 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		rows := make([]table.Row, 0, len(m.days))
 		for _, day := range m.days {
 			rows = append(rows, table.Row{
-				fmt.Sprintf("%d", day.Number),
-				day.Name,
-				day.Parts[0].Result,
-				day.Parts[1].Result,
-				day.Parts[0].Duration.Truncate(100 * time.Nanosecond).String(),
-				day.Parts[1].Duration.Truncate(100 * time.Nanosecond).String(),
+				fmt.Sprintf("%d", day.Day.Number),
+				day.Day.Name,
+				day.Day.Parts[0].Result,
+				day.Day.Parts[1].Result,
+				day.Day.Parts[0].Duration.Truncate(100 * time.Nanosecond).String(),
+				day.Day.Parts[1].Duration.Truncate(100 * time.Nanosecond).String(),
 			})
 		}
 		m.table.SetRows(rows)
