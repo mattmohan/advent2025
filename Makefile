@@ -1,14 +1,24 @@
-SUBDIRS := $(filter_out days,$(filter day%,$(wildcard */.)))
-.PHONY: all plugins $(SUBDIRS)
+SUBDIRS := $(filter-out days%,$(filter day%,$(wildcard */.)))
+.PHONY: all plugins run clean $(SUBDIRS)
 
-all: advent plugins/day1.so
+all: advent plugins
+run: advent
+	./advent
 
-advent: $(wildcard *.go utils/*.go days/*.go)
+go.sum: go.mod
+	go mod tidy
+
+clean:
+	rm -f advent plugins/*.so
+
+advent: $(wildcard *.go utils/*.go days/*.go) go.sum
 	go build -o advent .
 
-plugins/%.so: ${SUBDIRS}
-	@echo "All plugins built for ${SUBDIRS}."
+plugins: ${SUBDIRS}
+plugins/%: $(wildcard %/*.go) go.sum
+	@echo "Building plugin for $(@D)"
+	@go build -o $(@D)_plugin.so -buildmode=plugin $(patsubst plugins/%,./%,$(@D))
 
 ${SUBDIRS}: 
-	@echo "Building plugin for $(@D)"
-	@go build -o plugins/$(@D).so -buildmode=plugin ./$@
+	@make plugins/$(dir $@:-=)
+	
