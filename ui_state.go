@@ -89,7 +89,18 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case days.Progress:
 		// Handle progress updates
-		dayIdx := msg.Day
+		dayIdx := -1
+
+		for i := range m.days {
+			if m.days[i].Day.Number == msg.Day+1 {
+				dayIdx = i
+				break
+			}
+		}
+		if dayIdx < 0 {
+			return m, nil
+		}
+
 		partIdx := int(msg.Part)
 		cmd := m.progressBars[dayIdx][partIdx].SetPercent(float64(msg.Percent))
 		return m, tea.Sequence(cmd, listenProgress(m.progressCh))
